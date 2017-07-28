@@ -1,0 +1,28 @@
+Metadata-Version: 1.0
+Name: bible
+Version: 0.2
+Summary: Bible reference classes
+Home-page: http://github.com/jasford/python-bible
+Author: Jason Ford
+Author-email: jason@jason-ford.com
+License: UNKNOWN
+Description: Classes for Bible references: Verse and Passage
+        -----------------------------------------------
+        
+        Python classes for Bible Verse and Passage - useful for storing, comparing,
+        and formatting Bible references. Also includes Django form classes to make it
+        easy to add Bible references to your Django models.
+        
+        
+Keywords: encoding,i18n,xml
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Framework :: Django
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Other Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Religion
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
