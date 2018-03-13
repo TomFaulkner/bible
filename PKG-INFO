@@ -22,7 +22,7 @@ Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 2.6
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Framework :: Django
-Classifier: Development Status :: 5 - Stable
+Classifier: Development Status :: 5 - Production/Stable
 Classifier: Environment :: Other Environment
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: BSD License
