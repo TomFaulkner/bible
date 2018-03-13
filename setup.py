@@ -1,19 +1,19 @@
 from distutils.core import setup
 
 setup(
-    name="bible",
+    name="bible3",
     packages=["bible"],
-    version="0.2",
+    version="1.0.0",
     description="Bible reference classes",
-    author="Jason Ford",
-    author_email="jason@jason-ford.com",
-    url="http://github.com/jasford/python-bible",
-    keywords=["encoding", "i18n", "xml"],
+    author="Tom Faulkner",
+    author_email="tomfaulkner@gmail.com.com",
+    url="http://github.com/tomfaulkner/bible",
+    keywords=["encoding", "i18n", "xml", "bible", "django"],
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.6, 3.6",
         "Framework :: Django",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Stable",
         "Environment :: Other Environment",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",

@@ -32,7 +32,9 @@ class TestPassage(unittest.TestCase):
         self.assertEqual(self.romans.format(), 'Romans 1:1 - 16:27')
         self.assertEqual(self.romans.format('B C:V-c:v'), 'Romans 1:1-16:27')
         self.assertEqual(self.romans.format('B C:V-c:v'), 'Romans 1:1-16:27')
-        self.assertEqual(self.romans.format('B c:v - C:V B'), 'Romans 16:27 - 1:1 Romans')
+        self.assertEqual(self.romans.format(
+            'B c:v - C:V B'), 'Romans 16:27 - 1:1 Romans'
+        )
         self.assertEqual(self.romans.format('P v'), 'Romans 1:1 - 16:27 27')
 
         # not capable of adding into other than format strings, don't do this
@@ -44,7 +46,8 @@ class TestPassage(unittest.TestCase):
 
     def test_smart_format(self):
         self.assertEqual(self.romans.smart_format(), 'Romans 1:1 - 16:27')
-        self.assertEqual(self.two_books.smart_format(), 'Acts 1:1 - Romans 16:27')
+        self.assertEqual(self.two_books.smart_format(),
+                         'Acts 1:1 - Romans 16:27')
         print(self.two_books.smart_format())
 
     def test_translation(self):
@@ -70,6 +73,7 @@ class TestVerse(unittest.TestCase):
         self.assertEqual(repr(self.eph2_10), self.eph2_10.to_string())
         self.assertEqual(repr(self.acts_8_37_kjv), '44-8-37-kvj')
         self.assertEqual(repr(self.acts_8_37_esv), '44-8-37-esv')
+
 
 if __name__ == '__main__':
     unittest.main()

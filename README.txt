@@ -11,9 +11,8 @@ display the actual verse text for a reference.
 
 ------------------------------------------------
 
-I forked this, at least for now, to make it Python 3 compatible. I've added
- some tests, certainly more could be included. All tests pass in Python 2.7.13
- and Python 3.6.2.
+I forked this to make it Python 3 compatible. I've added some tests, certainly
+ more could be included. All tests pass in Python 2.7.13 and Python 3.6.2.
 
 __str__ and __repr__ added to both Verse and Passage classes, __len__ added to
  Passage, other changes were minimal.
