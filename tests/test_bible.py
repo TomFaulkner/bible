@@ -30,11 +30,11 @@ class TestPassage(unittest.TestCase):
         with self.assertRaises(RangeError):
             # acts 2 has 47 verses
             self.two_books.includes(bible.Verse('Acts 2:48'))
-        
-""" TODO: test for range of boxed/omitted passages        
-        # with self.assertRaises(RangeError):
-        #     # mark 16:9-20 has been boxed/omitted
-        #     self.boxed.includes(bible.Verse('Mark 16:9')) """
+
+        """ TODO: test for range of boxed/omitted passages        
+        with self.assertRaises(RangeError):
+            # mark 16:9-20 has been boxed/omitted
+            self.boxed.includes(bible.Verse('Mark 16:9')) """
 
     def test_format(self):
         self.assertEqual(self.romans.format(), 'Romans 1:1 - 16:27')
@@ -56,9 +56,7 @@ class TestPassage(unittest.TestCase):
         self.assertEqual(self.romans.smart_format(), 'Romans 1:1 - 16:27')
         self.assertEqual(self.two_books.smart_format(),
                          'Acts 1:1 - Romans 16:27')
-        print(self.two_books.smart_format())
         self.assertEqual(self.boxed.smart_format(), 'Mark 16:9-20')
-        print(self.boxed.smart_format())
 
     def test_translation(self):
         passage = bible.Passage('44-8-37-esv', '45-16-27-esv')
