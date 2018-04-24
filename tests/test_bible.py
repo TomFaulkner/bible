@@ -31,10 +31,7 @@ class TestPassage(unittest.TestCase):
             # acts 2 has 47 verses
             self.two_books.includes(bible.Verse('Acts 2:48'))
 
-        """ TODO: test for range of boxed/omitted passages        
-        with self.assertRaises(RangeError):
-            # mark 16:9-20 has been boxed/omitted
-            self.boxed.includes(bible.Verse('Mark 16:9')) """
+# TODO: test for range of boxed/omitted passages        
 
     def test_format(self):
         self.assertEqual(self.romans.format(), 'Romans 1:1 - 16:27')
