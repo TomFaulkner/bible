@@ -5,7 +5,7 @@ import unittest
 import bible
 
 
-class TestPassage(unittest.TestCase):
+class TestPassage(unittest.TestCase): 
     def setUp(self):
         self.romans = bible.Passage('Romans 1:1', 'Romans 16:27')
         self.two_books = bible.Passage('Acts 1:1', 'Romans 16:27')
@@ -30,8 +30,10 @@ class TestPassage(unittest.TestCase):
         with self.assertRaises(RangeError):
             # acts 2 has 47 verses
             self.two_books.includes(bible.Verse('Acts 2:48'))
-
-# TODO: test for range of boxed/omitted passages        
+        
+        with self.assertRaises(RangeError):
+            # romans 16:9-20 omitted in some versions
+            self.boxed.includes(bible.Verse('Romans 16:9'))
 
     def test_format(self):
         self.assertEqual(self.romans.format(), 'Romans 1:1 - 16:27')
