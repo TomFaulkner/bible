@@ -53,6 +53,7 @@ class Verse:
         elif len(args) == 1:
             # maybe we got a normalized b-c-v(-t) string
             try:
+                # print('verse init: args[0] = ' + str(args[0]) + ', type = ' + type(args[0]).__name__)
                 # check to make sure we have a valid verse string
                 if not verse_re.search(args[0]):
                     raise Exception('String should be in normalized b-c-v(-t) '
@@ -190,11 +191,12 @@ class Verse:
 class Passage:
     """A passage of scripture with start and end verses."""
 
-    def __init__(self, start, end):
+    def __init__(self, start, end=None):
         """Create a new Passage object.
 
         Accepts Verse objects or any string inputs that can process into valid
-        Verse objects
+        Verse objects. If there is no value provided for end, it signals that
+        start is a string with a hyphen indicating a range.
 
         Examples: v1 = Verse('Rom. 1:1')
                   v2 = Verse('Rom. 1:8')
@@ -202,14 +204,20 @@ class Passage:
 
                   Passage('Rom. 1:1', 'Rom. 1:8')
 
+                  Passage('Rom 1:1-8')
+
         """
+        if end is None:  # expect a string with a hyphen in first argument
+            # parse the range and return two Verses for the start and end
+            (start, end) = self.__parse_range(start)
+
         # if the args passed were objects, add them to the Passage
         # directly, otherwise try to interpret them as strings
-        if type(start).__name__ == 'instance':
+        if type(start).__name__ == 'instance' or type(start).__name__ == 'Verse':
             self.start = start
         else:
             self.start = Verse(start)
-        if type(end).__name__ == 'instance':
+        if type(end).__name__ == 'instance' or type(end).__name__ == 'Verse':
             self.end = end
         else:
             self.end = Verse(end)
@@ -220,6 +228,74 @@ class Passage:
                             'Passage')
         else:
             self.bible = self.start.bible
+
+    def __parse_range(self, expression):
+        """Try to split a range verse expression with a hyphen into two strings that
+        can be handled by Verse constructor
+
+        Expected input can be of these forms:
+            James 2:10-12
+            James 2:10-3:4
+            1 John 3:10-2 John 1:7
+
+        But these types are not handled
+            James 2-3
+
+        All the usual book abbreviations apply, because we use Verse to do
+        that.
+
+        So, there should be one and only one hyphen, we just need to learn
+        what parts change from left of hyphen to right of hyphen
+        """
+        if type(expression).__name__ != 'str':
+            raise Exception('Expected string argument to Passage')
+
+        if expression.count('-') != 1:
+            raise Exception("Expecting exactly one hyphen in verse range expression")
+
+        left, right = expression.split('-')
+        #   [book number <space>] book name(w/embedded spaces) <space> chapter <colon> verse
+        left_re = '([ a-zA-Z1-3]+) ([0-9]+):([0-9]+)$'
+        left_match = re.match(left_re, left)
+        if not left_match:
+            raise Exception('Error in format of verse range expression. Problem on left side of hyphen')
+        book = left_match.group(1)
+        chapter = left_match.group(2)
+        # verse = left_match.group(3)
+
+        # these are defaults for right side
+        right_book = book
+        right_chapter = chapter
+        right_verse = '' # just initialize as empty, will always be overwritten
+
+        right_unfinished = True
+        # now, what can we have on right side? Just a verse, easy
+        right_re1 = '[0-9]+$'
+        right_match = re.match(right_re1, right)
+        if right_match:
+            right_verse = right
+            right_unfinished = False
+
+        # now, just chapter and verse
+        if right_unfinished:
+            right_re2 = '([0-9]+):([0-9])$'
+            right_match2 = re.match(right_re2, right)
+            if right_match2:
+                right_chapter = right_match2.group(1)
+                right_verse = right_match2.group(2)
+                right_unfinished = False
+
+        # so, its book, chapter and verse on right side of hyphen
+        if right_unfinished:
+            right_match3 = re.match(left_re, right)
+            if not right_match3:
+                raise Exception('Error in format of verse range expression. Problem on right side of hyphen')
+            right_book = right_match3.group(1)
+            right_chapter = right_match3.group(2)
+            right_verse = right_match3.group(3)
+
+        complete_right = right_book + ' ' + right_chapter + ':' + right_verse
+        return (Verse(left), Verse(complete_right), )
 
     def __unicode__(self):
         return self.smart_format()
@@ -266,6 +342,48 @@ class Passage:
 
         # if we haven't failed out yet, then the verse is included
         return True
+
+
+    def overlap(self, passage):
+        """Check to see if two passages have any overlap."""
+
+        # check for disjoint scenarios, book, chapter, verse
+        if self.end.book < passage.start.book:
+            return False
+        if passage.end.book < self.start.book:
+            return False
+        if self.end.book == passage.start.book and self.end.chapter < passage.start.chapter:
+            return False
+        if passage.end.book == self.start.book and passage.end.chapter < self.start.chapter:
+            return False
+        if self.end.book == passage.start.book and self.end.chapter == passage.start.chapter \
+                and self.end.verse < passage.start.verse:
+            return False
+        if passage.end.book == self.start.book and passage.end.chapter == self.start.chapter \
+                and passage.end.verse < self.start.verse:
+            return False
+
+        # all disjoint cases handled above, now make sure self and passage are not omitted.
+        # For an omission to matter, we must have either self or passage be single book and single chapter.
+        if self.start.book == self.end.book and self.start.chapter == self.end.chapter:
+            # OK, single book/chapter for self
+            if 'omissions' in self.bible[self.start.book - 1]  \
+                and len(self.bible[self.book - 1]['omissions']) >= passage.chapter  \
+                and self.start.verse in self.bible[self.start.book - 1]['omissions'][self.start.chapter - 1]:
+                    # self is in omitted verses, so no overlap
+                    return False
+
+        if passage.start.book == passage.end.book and passage.start.chapter == passage.end.chapter:
+            # OK, single book/chapter for passage
+            if 'omissions' in passage.bible[passage.start.book - 1]  \
+                and len(passage.bible[passage.book - 1]['omissions']) >= passage.chapter  \
+                and passage.start.verse in passage.bible[passage.start.book - 1]['omissions'][passage.start.chapter - 1]:
+                    # passage is in omitted verses, so no overlap
+                    return False
+
+        # all non-overlapping cases handled above so what is left is partial or complete overlap.
+        return True
+
 
     def __len__(self):
         return self.length()
