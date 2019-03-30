@@ -101,6 +101,11 @@ class TestVerse(unittest.TestCase):
         self.assertEqual(repr(self.acts_8_37_kjv), '44-8-37-kvj')
         self.assertEqual(repr(self.acts_8_37_esv), '44-8-37-esv')
 
+class TestAbbreviations(unittest.TestCase):
+    def test_book_abbrevs(self):
+        str_expected = 'Genesis:gen,ge,gn\nExodus:exod,ex,exo'
+        str_results = bible.book_abbreviations()
+        self.assertEqual(str_results[0:len(str_expected)], str_expected)
 
 if __name__ == '__main__':
     unittest.main()
