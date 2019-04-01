@@ -32,6 +32,15 @@ class TestPassage(unittest.TestCase):
             # acts 2 has 47 verses
             self.two_books.includes(bible.Verse('Acts 2:48'))
 
+        # equivalenced includes to __contains__
+        my_verse = bible.Verse('Romans 2:12')
+        self.assertTrue(self, my_verse in self.romans)
+
+        # testing for being NOT IN seems to break the assertFalse, like this:
+        #   self.assertFalse(self, my_verse in self.acts)
+        status = my_verse in self.acts
+        self.assertTrue(self, not status)
+
     def test_range(self):
         # a few tests to ensure range expressions are acceptable
         range_expr1 = bible.Passage('James 2:10-12')
@@ -43,8 +52,9 @@ class TestPassage(unittest.TestCase):
         self.assertTrue(range_expr2.includes(a_verse))
         self.assertTrue(range_expr3.includes(another_verse))
 
-        # failing test cases for ranges that don't include verses or even chapters
-        # if that feature gets added, these tests will fail (and you can invert the logic)
+        # failing test cases for ranges that don't include verses or even
+        # chapters. If that feature gets added, these tests will fail
+        # (and you can invert the logic)
         self.assertRaises(Exception, bible.Passage, 'James 2-3')
         self.assertRaises(Exception, bible.Passage, '1 John-2 John')
 
@@ -75,7 +85,6 @@ class TestPassage(unittest.TestCase):
         self.assertEqual(self.romans.smart_format(), 'Romans 1:1 - 16:27')
         self.assertEqual(self.two_books.smart_format(),
                          'Acts 1:1 - Romans 16:27')
-        # print(self.two_books.smart_format())
 
     def test_translation(self):
         passage = bible.Passage('44-8-37-esv', '45-16-27-esv')
@@ -106,6 +115,7 @@ class TestAbbreviations(unittest.TestCase):
         str_expected = 'Genesis:gen,ge,gn\nExodus:exod,ex,exo'
         str_results = bible.book_abbreviations()
         self.assertEqual(str_results[0:len(str_expected)], str_expected)
+
 
 if __name__ == '__main__':
     unittest.main()

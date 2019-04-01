@@ -3,6 +3,7 @@
 Values based on a specific translation.
 """
 
+
 def bible_data(translation=None):
     """Return an array with reference data for each book of the bible.
 
@@ -313,7 +314,8 @@ def bible_data(translation=None):
             'abbrs': ['mar', 'mk']},
         {
             'testament': 'NT',
-            'verse_counts': [80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59, 35, 35, 32, 31, 37, 43, 48, 47, 38, 71, 56, 53],
+            'verse_counts': [80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59,
+                             35, 35, 32, 31, 37, 43, 48, 47, 38, 71, 56, 53],
             'name': 'Luke',
             'abbrs': ['luke', 'lu', 'luk', 'lk']
         },
@@ -465,7 +467,7 @@ def bible_data(translation=None):
             'testament': 'NT',
             'verse_counts': [25],
             'name': 'Jude',
-            'abbrs': ['jude','ju', 'jud']
+            'abbrs': ['jude', 'ju', 'jud']
         },
         {
             'testament': 'NT',

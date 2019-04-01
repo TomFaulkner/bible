@@ -6,12 +6,12 @@ import re
 import bible.data
 
 # regular expressions for matching a valid normalized verse string
-verse_re = re.compile(r'^\d{1,2}-\d{1,3}-\d{1,3}(-[a-zA-Z]{2,})?$')
+VERSE_RE = re.compile(r'^\d{1,2}-\d{1,3}-\d{1,3}(-[a-zA-Z]{2,})?$')
 
 # regular expressions for identifying book, and chapter:verse references
-book_re = re.compile(r'^\d*[a-zA-Z ]*')
-ref_re = re.compile(r'\d{1,3}:\d{1,3}')
-translation_re = re.compile(r'[a-zA-Z]{2,}$')
+BOOK_RE = re.compile(r'^\d*[a-zA-Z ]*')
+REF_RE = re.compile(r'\d{1,3}:\d{1,3}')
+TRANSLATION_RE = re.compile(r'[a-zA-Z]{2,}$')
 
 
 class RangeError(Exception):
@@ -53,9 +53,8 @@ class Verse:
         elif len(args) == 1:
             # maybe we got a normalized b-c-v(-t) string
             try:
-                # print('verse init: args[0] = ' + str(args[0]) + ', type = ' + type(args[0]).__name__)
                 # check to make sure we have a valid verse string
-                if not verse_re.search(args[0]):
+                if not VERSE_RE.search(args[0]):
                     raise Exception('String should be in normalized b-c-v(-t) '
                                     'format.')
 
@@ -71,21 +70,21 @@ class Verse:
             except:
                 # find the book reference
                 try:
-                    b = book_re.search(args[0]).group(0)
+                    book_ref = BOOK_RE.search(args[0]).group(0)
                 except:
                     raise RangeError("We can't find that book of the Bible: %s"
                                      % (args[0]))
 
                 # find the chapter:verse reference
                 try:
-                    ref = ref_re.search(args[0]).group(0)
+                    ref = REF_RE.search(args[0]).group(0)
                 except:
                     raise Exception("Can't make sense of your chapter:"
                                     "verse reference")
 
                 # find the translation, if provided
                 try:
-                    self.translation = translation_re.search(
+                    self.translation = TRANSLATION_RE.search(
                         args[0]
                     ).group(0).upper()
                 except:
@@ -93,20 +92,21 @@ class Verse:
 
                 # try to find the book listed as a book name or abbreviation
                 self.bible = bible.data.bible_data(self.translation)
-                b = b.rstrip('.').lower().strip()
+                book_ref = book_ref.rstrip('.').lower().strip()
                 for i, book in enumerate(self.bible):
-                    if book['name'].lower() == b:
+                    if book['name'].lower() == book_ref:
                         found = i + 1
                         break
                     else:
                         for abbr in book['abbrs']:
-                            if abbr == b:
+                            if abbr == book_ref:
                                 found = i + 1
                                 break
                 try:
                     self.book = found
                 except:
-                    raise RangeError("Can't find that book of the Bible: " + b)
+                    raise RangeError("Can't find that book of the Bible: "
+                                     + book_ref)
 
                 # extract chapter and verse from ref
                 self.chapter, self.verse = map(int, ref.split(':'))
@@ -160,14 +160,14 @@ class Verse:
         Letters are substituted for verse attributes, like date formatting
         """
         # create blank string to hold output
-        f = ""
+        formatted_string = ""
 
         # iterate over letters in val string passed in to method
-        for c in val:
-            f += _format_char(self, c)
+        for chara in val:
+            formatted_string += _format_char(self, chara)
 
         # return the formatted value
-        return f.strip()
+        return formatted_string.strip()
 
     def __repr__(self):
         return self.to_string()
@@ -178,14 +178,15 @@ class Verse:
         This is especially useful for saving to a database
         """
         # set the base string to book, chapter, and verse number
-        v = "%s-%s-%s" % (str(self.book), str(self.chapter), str(self.verse))
+        verse_str = "%s-%s-%s" % (str(self.book), str(self.chapter),
+                                  str(self.verse))
 
         # try to add the version to the string
         # - if not set, just return the base string
         try:
-            return v + '-' + str(self.translation)
+            return verse_str + '-' + str(self.translation)
         except:
-            return v
+            return verse_str
 
 
 class Passage:
@@ -209,15 +210,17 @@ class Passage:
         """
         if end is None:  # expect a string with a hyphen in first argument
             # parse the range and return two Verses for the start and end
-            (start, end) = self.__parse_range(start)
+            (start, end) = self._parse_range(start)
 
         # if the args passed were objects, add them to the Passage
         # directly, otherwise try to interpret them as strings
-        if type(start).__name__ == 'instance' or type(start).__name__ == 'Verse':
+        if type(start).__name__ == 'instance'   \
+                or type(start).__name__ == 'Verse':
             self.start = start
         else:
             self.start = Verse(start)
-        if type(end).__name__ == 'instance' or type(end).__name__ == 'Verse':
+        if type(end).__name__ == 'instance'   \
+                or type(end).__name__ == 'Verse':
             self.end = end
         else:
             self.end = Verse(end)
@@ -229,7 +232,7 @@ class Passage:
         else:
             self.bible = self.start.bible
 
-    def __parse_range(self, expression):
+    def _parse_range(self, expression):
         """Try to split a range verse expression with a hyphen into two strings that
         can be handled by Verse constructor
 
@@ -251,14 +254,15 @@ class Passage:
             raise Exception('Expected string argument to Passage')
 
         if expression.count('-') != 1:
-            raise Exception("Expecting exactly one hyphen in verse range expression")
+            exc_str = "Expecting exactly one hyphen in verse range expression"
+            raise Exception(exc_str)
 
         left, right = expression.split('-')
-        #   [book number <space>] book name(w/embedded spaces) <space> chapter <colon> verse
         left_re = '([ a-zA-Z1-3]+) ([0-9]+):([0-9]+)$'
         left_match = re.match(left_re, left)
         if not left_match:
-            raise Exception('Error in format of verse range expression. Problem on left side of hyphen')
+            raise Exception('Error in format of verse range expression. '
+                            'Problem on left side of hyphen')
         book = left_match.group(1)
         chapter = left_match.group(2)
         # verse = left_match.group(3)
@@ -266,7 +270,8 @@ class Passage:
         # these are defaults for right side
         right_book = book
         right_chapter = chapter
-        right_verse = '' # just initialize as empty, will always be overwritten
+        # just initialize as empty, will always be overwritten
+        right_verse = ''
 
         right_unfinished = True
         # now, what can we have on right side? Just a verse, easy
@@ -289,7 +294,8 @@ class Passage:
         if right_unfinished:
             right_match3 = re.match(left_re, right)
             if not right_match3:
-                raise Exception('Error in format of verse range expression. Problem on right side of hyphen')
+                raise Exception('Error in format of verse range expression. '
+                                'Problem on right side of hyphen')
             right_book = right_match3.group(1)
             right_chapter = right_match3.group(2)
             right_verse = right_match3.group(3)
@@ -333,16 +339,19 @@ class Passage:
                 return False
 
         # make sure verse is not omitted
-        if 'omissions' in self.bible[verse.book - 1]:
-            if len(self.bible[verse.book - 1]['omissions']) >= verse.chapter:
-                if verse.verse in self.bible[verse.book - 1]['omissions'][
-                    verse.chapter - 1
-                ]:
+        real_book = verse.book - 1
+        real_chapt = verse.chapter - 1
+        if 'omissions' in self.bible[real_book]:
+            if len(self.bible[real_book]['omissions']) >= verse.chapter:
+                the_omis = self.bible[real_book]['omissions'][real_chapt]
+                if verse.verse in the_omis:
                     return False
 
         # if we haven't failed out yet, then the verse is included
         return True
 
+    # create functional equivalence
+    __contains__ = includes
 
     def overlap(self, passage):
         """Check to see if two passages have any overlap."""
@@ -352,38 +361,57 @@ class Passage:
             return False
         if passage.end.book < self.start.book:
             return False
-        if self.end.book == passage.start.book and self.end.chapter < passage.start.chapter:
+        if self.end.book == passage.start.book  \
+                and self.end.chapter < passage.start.chapter:
             return False
-        if passage.end.book == self.start.book and passage.end.chapter < self.start.chapter:
+        if passage.end.book == self.start.book  \
+                and passage.end.chapter < self.start.chapter:
             return False
-        if self.end.book == passage.start.book and self.end.chapter == passage.start.chapter \
+        if self.end.book == passage.start.book  \
+                and self.end.chapter == passage.start.chapter \
                 and self.end.verse < passage.start.verse:
             return False
-        if passage.end.book == self.start.book and passage.end.chapter == self.start.chapter \
+        if passage.end.book == self.start.book  \
+                and passage.end.chapter == self.start.chapter \
                 and passage.end.verse < self.start.verse:
             return False
 
-        # all disjoint cases handled above, now make sure self and passage are not omitted.
-        # For an omission to matter, we must have either self or passage be single book and single chapter.
-        if self.start.book == self.end.book and self.start.chapter == self.end.chapter:
+        # all disjoint cases handled above, now make sure self and passage
+        # are not omitted. For an omission to matter, we must have either
+        # self or passage be single book and single chapter.
+        real_chapter = self.start.chapter - 1
+        real_book = self.start.book - 1
+        if 'omissions' in self.bible[real_book]:
+            len_omissions = len(self.bible[real_book]['omissions'])
+        else:
+            len_omissions = 0
+        if self.start.book == self.end.book  \
+                and self.start.chapter == self.end.chapter:
             # OK, single book/chapter for self
-            if 'omissions' in self.bible[self.start.book - 1]  \
-                and len(self.bible[self.book - 1]['omissions']) >= passage.chapter  \
-                and self.start.verse in self.bible[self.start.book - 1]['omissions'][self.start.chapter - 1]:
-                    # self is in omitted verses, so no overlap
-                    return False
+            if 'omissions' in self.bible[real_book]  \
+                and len_omissions >= passage.chapter  \
+                and self.start.verse in  \
+                    self.bible[real_book]['omissions'][real_chapter]:
+                # self is in omitted verses, so no overlap
+                return False
 
-        if passage.start.book == passage.end.book and passage.start.chapter == passage.end.chapter:
+        if passage.start.book == passage.end.book  \
+                and passage.start.chapter == passage.end.chapter:
             # OK, single book/chapter for passage
-            if 'omissions' in passage.bible[passage.start.book - 1]  \
-                and len(passage.bible[passage.book - 1]['omissions']) >= passage.chapter  \
-                and passage.start.verse in passage.bible[passage.start.book - 1]['omissions'][passage.start.chapter - 1]:
+            real_book = passage.start.book - 1
+            real_chapter = passage.start.chapter - 1
+            if 'omissions' in passage.bible[real_book]:
+                len_omis = len(passage.bible[real_book]['omissions'])
+                list_omis = passage.bible[real_book]['omissions'][real_chapter]
+                if len_omis >= passage.chapter  \
+                        and passage.start.verse in list_omis:
+
                     # passage is in omitted verses, so no overlap
                     return False
 
-        # all non-overlapping cases handled above so what is left is partial or complete overlap.
+        # all non-overlapping cases handled above so what is left is partial
+        # or complete overlap.
         return True
-
 
     def __len__(self):
         return self.length()
@@ -429,9 +457,9 @@ class Passage:
                 self.start.book, self.start.chapter, start=self.start.verse)
 
             # add number of verses in whole chapters of start book
-            for chapter in range(self.start.chapter, len(self.bible[
-                self.start.book - 1
-            ]['verse_counts'])):
+            real_start = self.start.book - 1
+            len_chapters = len(self.bible[real_start]['verse_counts'])
+            for chapter in range(self.start.chapter, len_chapters):
                 count += self._count_verses(self.start.book, chapter)
 
             # add total number of verses in whole books between start and end
@@ -461,14 +489,14 @@ class Passage:
             start = 1
         if not end:
             end = book['verse_counts'][chapter - 1]
-        verses = range(start, end + 1)
+        verses = list(range(start, end + 1))
 
         # remove omissions from list of verses
         if 'omissions' in book and len(book['omissions']) >= chapter:
             omissions = book['omissions'][chapter - 1]
-            for v in omissions:
-                if v in verses:
-                    verses.remove(v)
+            for verse in omissions:
+                if verse in verses:
+                    verses.remove(verse)
 
         # send back a count of the verses that survived
         return len(verses)
@@ -484,23 +512,22 @@ class Passage:
         if val:
 
             # create blank string to hold output
-            f = ""
+            formatted_str = ""
 
             # iterate over letters in val string passed in to method
-            for c in val:
-                if c == "P":
-                    f += self.smart_format()
-                elif c.isupper():
-                    f += _format_char(self.start, c)
+            for chara in val:
+                if chara == "P":
+                    formatted_str += self.smart_format()
+                elif chara.isupper():
+                    formatted_str += _format_char(self.start, chara)
                 else:
-                    f += _format_char(self.end, c)
+                    formatted_str += _format_char(self.end, chara)
 
             # return formatted string
-            return f.strip()
+            return formatted_str.strip()
 
         # if we didn't get a formatting string, send back the smart_format()
-        else:
-            return self.smart_format()
+        return self.smart_format()
 
     def smart_format(self):
         """Display a human-readible string for passage.
@@ -522,18 +549,18 @@ class Passage:
 
             # start and end are in the same chapter of the same book
             if self.start.chapter == self.end.chapter:
-                f = self.format('B C:V-v')
+                formatted_str = self.format('B C:V-v')
 
             # start and end are in different chapters of the same book
             else:
-                f = self.format('B C:V - c:v')
+                formatted_str = self.format('B C:V - c:v')
 
         # start and end are in different books
         else:
-            f = self.format('B C:V - b c:v')
+            formatted_str = self.format('B C:V - b c:v')
 
         # return the formatted value
-        return f
+        return formatted_str
 
 
 def _format_char(verse, char):
@@ -548,21 +575,30 @@ def _format_char(verse, char):
     T - Translation
     """
     # use uppercase letter for comparison
-    c = char.upper()
+    char_upper = char.upper()
 
     # replace vals for start verse
-    if c == "B":
+    if char_upper == "B":
         return verse.bible[verse.book - 1]['name']
-    elif c == "A":
+    if char_upper == "A":
         return verse.bible[verse.book - 1]['abbrs'][0].title()
-    elif c == "C":
+    if char_upper == "C":
         return str(verse.chapter)
-    elif c == "V":
+    if char_upper == "V":
         return str(verse.verse)
-    elif c == "T":
+    if char_upper == "T":
         try:
             return str(verse.translation)
         except:
             return ""
     else:
         return char
+
+
+def book_abbreviations():
+    """Return a string listing all the bible book abbreviations"""
+    bible_data = bible.data.bible_data()
+    lines = list()
+    for book in bible_data:
+        lines.append(book['name']+':'+','.join(book['abbrs']))
+    return '\n'.join(lines)
