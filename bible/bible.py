@@ -148,6 +148,14 @@ class Verse:
         if omitted:
             raise RangeError(err)
 
+    def __eq__(self, other):
+        if self.translation is None and other.translation is None:
+            # if both transl are None, they won't equate when they should
+            return (self.book == other.book and self.chapter == other.chapter  \
+                    and self.verse == other.verse)
+        else:  # at least 1 translation is set, so == works
+            return self == other
+
     def __unicode__(self):
         return self.format()
 

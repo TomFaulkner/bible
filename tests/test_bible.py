@@ -99,6 +99,10 @@ class TestVerse(unittest.TestCase):
         # Acts 8:37 doesn't exist in ESV, testing omissions from data.py
         self.acts_8_37_esv = bible.Verse(44, 8, 37, 'esv')
 
+    def test_equals(self):
+        other = bible.Verse('Eph 2:10')
+        self.assertTrue(self.eph2_10 == other)
+
     def test_format(self):
         self.assertEqual(self.acts_8_37_esv.format('b c:v'),
                          self.acts_8_37_esv.format('B C:V'))
