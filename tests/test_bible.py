@@ -44,7 +44,7 @@ class TestPassage(unittest.TestCase):
     def test_range(self):
         # a few tests to ensure range expressions are acceptable
         range_expr1 = bible.Passage('James 2:10-12')
-        range_expr2 = bible.Passage('James 2:10-3:4')
+        range_expr2 = bible.Passage('James 2:10-3:12')
         range_expr3 = bible.Passage('1 John 3:10-2 John 1:7')
         a_verse = bible.Verse('James 2:11')
         another_verse = bible.Verse('1 John 3:24')

@@ -291,7 +291,7 @@ class Passage:
 
         # now, just chapter and verse
         if right_unfinished:
-            right_re2 = '([0-9]+):([0-9])$'
+            right_re2 = '([0-9]+):([0-9]+)$'
             right_match2 = re.match(right_re2, right)
             if right_match2:
                 right_chapter = right_match2.group(1)
