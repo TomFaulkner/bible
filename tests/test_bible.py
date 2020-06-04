@@ -103,6 +103,9 @@ class TestVerse(unittest.TestCase):
         other = bible.Verse('Eph 2:10')
         self.assertTrue(self.eph2_10 == other)
 
+    def test_equals_with_both_translations_set(self):
+        self.assertTrue(bible.Verse(1, 2, 3, 'kjv') == bible.Verse(1, 2, 3, 'kjv'))
+
     def test_format(self):
         self.assertEqual(self.acts_8_37_esv.format('b c:v'),
                          self.acts_8_37_esv.format('B C:V'))
